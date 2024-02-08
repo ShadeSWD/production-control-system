@@ -33,6 +33,3 @@ class WorkShift(Base):
     rc_identifier = Column(String)
     open_at = Column(DateTime)
     closed_at = Column(DateTime, nullable=True)
-
-
-Base.metadata.create_all(bind=engine)

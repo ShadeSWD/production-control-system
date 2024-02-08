@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from models import SessionLocal, WorkShift, Base, engine
 from datetime import date, datetime
 
@@ -43,4 +43,6 @@ async def create_work_shift(closing_status: bool,
 async def read_item(work_shift_id: int):
     db = SessionLocal()
     work_shift = db.query(WorkShift).filter(WorkShift.id == work_shift_id).first()
+    if work_shift is None:
+        raise HTTPException(status_code=404, detail="Shift not found")
     return work_shift
