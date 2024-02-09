@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime, create_engine
+from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime, create_engine, event, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
@@ -33,3 +33,18 @@ class WorkShift(Base):
     rc_identifier = Column(String)
     open_at = Column(DateTime)
     closed_at = Column(DateTime, nullable=True)
+    uid = Column(String, unique=True, index=True)
+
+    __table_args__ = (
+        UniqueConstraint('uid', name='uq_uid'),
+    )
+
+
+@event.listens_for(WorkShift, 'before_insert')
+def set_full_name(mapper, connection, target):
+    db = SessionLocal()
+    target.uid = f"{target.lot_number} {target.lot_date}"
+    existing_shift = db.query(WorkShift).filter(WorkShift.uid == target.uid).first()
+    if existing_shift:
+        db.delete(existing_shift)
+        db.commit()
