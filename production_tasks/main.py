@@ -10,6 +10,16 @@ app = FastAPI()
 @app.post("/work_shifts/", response_model=schemas.WorkShift)
 async def create_work_shift(work_shift: schemas.WorkShiftCreate):
     db = SessionLocal()
+    existing_work_shift = db.query(WorkShift).filter(WorkShift.lot_number == work_shift.dict()["lot_number"] and
+                                                     WorkShift.lot_date == work_shift.dict()["lot_date"]).first()
+
+    if existing_work_shift:
+        for key, value in work_shift.dict().items():
+            setattr(existing_work_shift, key, value) if value else None
+        db.commit()
+        db.refresh(existing_work_shift)
+        return existing_work_shift
+
     db_work_shift = WorkShift(**work_shift.dict())
     db.add(db_work_shift)
     db.commit()
@@ -25,13 +35,9 @@ async def create_products(products: schemas.ProductsCreate):
         if not db.query(Product).filter(Product.uin == product.dict()["uin"]).first():
             db_product = Product()
             db_product.uin = product.dict()["uin"]
-
-            work_shift_uid = WorkShift.create_uid(
-                lot_number=product.dict()["lot_number"],
-                lot_date=product.dict()["lot_date"],
-            )
             db_work_shift = (
-                db.query(WorkShift).filter(WorkShift.uid == work_shift_uid).first()
+                db.query(WorkShift).filter(WorkShift.lot_number == product.dict()["lot_number"] and
+                                           WorkShift.lot_date == product.dict()["lot_date"]).first()
             )
             if db_work_shift is None:
                 continue

@@ -35,17 +35,17 @@ class WorkShiftBase(BaseModel):
     line: str
     shift: int
     brigade: str
+    lot_number: int
+    lot_date: date
     nomenclature: str
     ekn_code: str
     rc_identifier: str
-    open_at: datetime
+    shift_start: datetime
 
 
 class WorkShift(WorkShiftBase):
     id: int
-    lot_number: int
-    lot_date: date
-    closed_at: Union[datetime, None]
+    closed_at: Optional[datetime] = None
 
 
 class WorkShiftCreate(WorkShiftBase):
@@ -59,8 +59,8 @@ class WorkShiftCreate(WorkShiftBase):
     nomenclature: str = Field(validation_alias="Номенклатура")
     ekn_code: str = Field(validation_alias="КодЕКН")
     rc_identifier: str = Field(validation_alias="ИдентификаторРЦ")
-    open_at: datetime = Field(validation_alias="ДатаВремяНачалаСмены")
-    closed_at: Union[datetime, None] = Field(validation_alias="ДатаВремяОкончанияСмены")
+    shift_start: datetime = Field(validation_alias="ДатаВремяНачалаСмены")
+    shift_end: datetime = Field(validation_alias="ДатаВремяОкончанияСмены")
 
 
 class WorkShiftPatch(WorkShiftBase):
@@ -72,5 +72,3 @@ class WorkShiftPatch(WorkShiftBase):
     nomenclature: Optional[str] = None
     ekn_code: Optional[str] = None
     rc_identifier: Optional[str] = None
-    open_at: Optional[datetime] = None
-    closed_at: Optional[datetime] = None

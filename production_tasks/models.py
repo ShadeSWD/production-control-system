@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
 
+import sqlalchemy
 from dotenv import load_dotenv
+from fastapi import HTTPException
 from sqlalchemy import (Boolean, Column, Date, DateTime, ForeignKey, Integer,
                         String, UniqueConstraint, create_engine, event)
 from sqlalchemy.ext.declarative import declarative_base
@@ -35,26 +37,28 @@ class WorkShift(Base):
     nomenclature = Column(String)
     ekn_code = Column(String)
     rc_identifier = Column(String)
-    open_at = Column(DateTime)
+    shift_start = Column(DateTime)
+    shift_end = Column(DateTime)
     closed_at = Column(DateTime, nullable=True)
-    uid = Column(String, unique=True, index=True)
 
-    __table_args__ = (UniqueConstraint("uid", name="uq_uid"),)
 
-    @staticmethod
-    def create_uid(lot_number, lot_date):
-        return f"{lot_number} {lot_date}"
+def check_unique_lot(target):
+    db = SessionLocal()
+    existing_shifts = db.query(WorkShift).filter(WorkShift.lot_number == target.lot_number,
+                                                 WorkShift.lot_date == target.lot_date,
+                                                 WorkShift.id != target.id).first()
+    if existing_shifts:
+        raise HTTPException(status_code=422, detail="Shift already exists")
 
 
 @event.listens_for(WorkShift, "before_insert")
 def set_uid(mapper, connection, target):
-    db = SessionLocal()
-    uid = WorkShift.create_uid(lot_number=target.lot_number, lot_date=target.lot_date)
-    target.uid = uid
-    existing_shift = db.query(WorkShift).filter(WorkShift.uid == target.uid).first()
-    if existing_shift:
-        db.delete(existing_shift)
-        db.commit()
+    check_unique_lot(target)
+
+
+@event.listens_for(WorkShift, "before_update")
+def set_uid(mapper, connection, target):
+    check_unique_lot(target)
 
 
 class Product(Base):
