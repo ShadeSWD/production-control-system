@@ -10,8 +10,14 @@ app = FastAPI()
 @app.post("/work_shifts/", response_model=schemas.WorkShift)
 async def create_work_shift(work_shift: schemas.WorkShiftCreate):
     db = SessionLocal()
-    existing_work_shift = db.query(WorkShift).filter(WorkShift.lot_number == work_shift.dict()["lot_number"] and
-                                                     WorkShift.lot_date == work_shift.dict()["lot_date"]).first()
+    existing_work_shift = (
+        db.query(WorkShift)
+        .filter(
+            WorkShift.lot_number == work_shift.dict()["lot_number"]
+            and WorkShift.lot_date == work_shift.dict()["lot_date"]
+        )
+        .first()
+    )
 
     if existing_work_shift:
         for key, value in work_shift.dict().items():
@@ -36,8 +42,12 @@ async def create_products(products: schemas.ProductsCreate):
             db_product = Product()
             db_product.uin = product.dict()["uin"]
             db_work_shift = (
-                db.query(WorkShift).filter(WorkShift.lot_number == product.dict()["lot_number"] and
-                                           WorkShift.lot_date == product.dict()["lot_date"]).first()
+                db.query(WorkShift)
+                .filter(
+                    WorkShift.lot_number == product.dict()["lot_number"]
+                    and WorkShift.lot_date == product.dict()["lot_date"]
+                )
+                .first()
             )
             if db_work_shift is None:
                 continue

@@ -1,11 +1,10 @@
 import os
 from pathlib import Path
 
-import sqlalchemy
 from dotenv import load_dotenv
 from fastapi import HTTPException
 from sqlalchemy import (Boolean, Column, Date, DateTime, ForeignKey, Integer,
-                        String, UniqueConstraint, create_engine, event)
+                        String, create_engine, event)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -44,20 +43,26 @@ class WorkShift(Base):
 
 def check_unique_lot(target):
     db = SessionLocal()
-    existing_shifts = db.query(WorkShift).filter(WorkShift.lot_number == target.lot_number,
-                                                 WorkShift.lot_date == target.lot_date,
-                                                 WorkShift.id != target.id).first()
+    existing_shifts = (
+        db.query(WorkShift)
+        .filter(
+            WorkShift.lot_number == target.lot_number,
+            WorkShift.lot_date == target.lot_date,
+            WorkShift.id != target.id,
+        )
+        .first()
+    )
     if existing_shifts:
         raise HTTPException(status_code=422, detail="Shift already exists")
 
 
 @event.listens_for(WorkShift, "before_insert")
-def set_uid(mapper, connection, target):
+def check_lot_insert(mapper, connection, target):
     check_unique_lot(target)
 
 
 @event.listens_for(WorkShift, "before_update")
-def set_uid(mapper, connection, target):
+def check_lot_update(mapper, connection, target):
     check_unique_lot(target)
 
 
