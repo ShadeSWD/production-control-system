@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from sqlalchemy import (Boolean, Column, Date, DateTime, Integer, String,
-                        UniqueConstraint, create_engine, event)
+from sqlalchemy import (Boolean, Column, Date, DateTime, ForeignKey, Integer,
+                        String, UniqueConstraint, create_engine, event)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -41,12 +41,25 @@ class WorkShift(Base):
 
     __table_args__ = (UniqueConstraint("uid", name="uq_uid"),)
 
+    @staticmethod
+    def create_uid(lot_number, lot_date):
+        return f"{lot_number} {lot_date}"
+
 
 @event.listens_for(WorkShift, "before_insert")
-def set_full_name(mapper, connection, target):
+def set_uid(mapper, connection, target):
     db = SessionLocal()
-    target.uid = f"{target.lot_number} {target.lot_date}"
+    uid = WorkShift.create_uid(lot_number=target.lot_number, lot_date=target.lot_date)
+    target.uid = uid
     existing_shift = db.query(WorkShift).filter(WorkShift.uid == target.uid).first()
     if existing_shift:
         db.delete(existing_shift)
         db.commit()
+
+
+class Product(Base):
+    __tablename__ = "products"
+    uin = Column(String, primary_key=True, index=True)
+    is_aggregated = Column(Boolean, default=False)
+    aggregated_at = Column(DateTime, nullable=True)
+    lot = Column(Integer, ForeignKey("work_shifts.id", ondelete="CASCADE"))

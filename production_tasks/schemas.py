@@ -1,7 +1,32 @@
 from datetime import date, datetime
-from typing import Union, Optional
+from typing import List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
+
+
+class ProductBase(BaseModel):
+    uin: str
+
+
+class ProductCreate(ProductBase):
+    uin: str = Field(validation_alias="УникальныйКодПродукта")
+    lot_number: int = Field(validation_alias="НомерПартии")
+    lot_date: date = Field(validation_alias="ДатаПартии")
+
+
+class Product(ProductBase):
+    is_aggregated: bool
+    aggregated_at: Union[datetime, None]
+    lot_number: int
+    lot_date: date
+
+
+class ProductsCreate(RootModel):
+    root: List[ProductCreate]
+
+
+class ProductsList(RootModel):
+    root: List[Product]
 
 
 class WorkShiftBase(BaseModel):
@@ -10,8 +35,6 @@ class WorkShiftBase(BaseModel):
     line: str
     shift: int
     brigade: str
-    lot_number: int
-    lot_date: date
     nomenclature: str
     ekn_code: str
     rc_identifier: str
@@ -20,6 +43,8 @@ class WorkShiftBase(BaseModel):
 
 class WorkShift(WorkShiftBase):
     id: int
+    lot_number: int
+    lot_date: date
     closed_at: Union[datetime, None]
 
 
@@ -44,8 +69,6 @@ class WorkShiftPatch(WorkShiftBase):
     line: Optional[str] = None
     shift: Optional[int] = None
     brigade: Optional[str] = None
-    lot_number: Optional[int] = None
-    lot_date: Optional[date] = None
     nomenclature: Optional[str] = None
     ekn_code: Optional[str] = None
     rc_identifier: Optional[str] = None

@@ -1,6 +1,6 @@
 import schemas
 from fastapi import FastAPI, HTTPException
-from models import Base, SessionLocal, WorkShift, engine
+from models import Base, Product, SessionLocal, WorkShift, engine
 
 Base.metadata.create_all(bind=engine)
 
@@ -15,6 +15,37 @@ async def create_work_shift(work_shift: schemas.WorkShiftCreate):
     db.commit()
     db.refresh(db_work_shift)
     return db_work_shift
+
+
+@app.post("/products/", response_model=schemas.ProductsList)
+async def create_products(products: schemas.ProductsCreate):
+    db = SessionLocal()
+    products_response = []
+    for product in products.root:
+        if not db.query(Product).filter(Product.uin == product.dict()["uin"]).first():
+            db_product = Product()
+            db_product.uin = product.dict()["uin"]
+
+            work_shift_uid = WorkShift.create_uid(
+                lot_number=product.dict()["lot_number"],
+                lot_date=product.dict()["lot_date"],
+            )
+            db_work_shift = (
+                db.query(WorkShift).filter(WorkShift.uid == work_shift_uid).first()
+            )
+            if db_work_shift is None:
+                continue
+            db_product.lot = db_work_shift.id
+
+            db.add(db_product)
+            db.commit()
+            db.refresh(db_product)
+
+            product_response = db_product
+            product_response.lot_number = product.dict()["lot_number"]
+            product_response.lot_date = product.dict()["lot_date"]
+            products_response.append(product_response)
+    return products_response
 
 
 @app.get("/work_shifts/{work_shift_id}", response_model=schemas.WorkShift)
