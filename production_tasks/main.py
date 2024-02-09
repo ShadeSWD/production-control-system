@@ -31,7 +31,7 @@ async def update_item(work_shift_id: int, work_shift: schemas.WorkShiftPatch):
     db = SessionLocal()
     db_work_shift = db.query(WorkShift).filter(WorkShift.id == work_shift_id).first()
 
-    if work_shift is None:
+    if db_work_shift is None:
         raise HTTPException(status_code=404, detail="Shift not found")
 
     for key, value in work_shift.dict().items():
