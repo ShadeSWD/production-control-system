@@ -27,7 +27,7 @@ async def read_work_shift(work_shift_id: int):
 
 
 @app.patch("/work_shifts/{work_shift_id}", response_model=schemas.WorkShift)
-async def update_item(work_shift_id: int, work_shift: schemas.WorkShiftBase):
+async def update_item(work_shift_id: int, work_shift: schemas.WorkShiftPatch):
     db = SessionLocal()
     db_work_shift = db.query(WorkShift).filter(WorkShift.id == work_shift_id).first()
 

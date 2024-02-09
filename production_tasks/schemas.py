@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Union
+from typing import Union, Optional
 
 from pydantic import BaseModel, Field
 
@@ -36,3 +36,18 @@ class WorkShiftCreate(WorkShiftBase):
     rc_identifier: str = Field(validation_alias="ИдентификаторРЦ")
     open_at: datetime = Field(validation_alias="ДатаВремяНачалаСмены")
     closed_at: Union[datetime, None] = Field(validation_alias="ДатаВремяОкончанияСмены")
+
+
+class WorkShiftPatch(WorkShiftBase):
+    closing_status: Optional[bool] = None
+    shift_assignment: Optional[str] = None
+    line: Optional[str] = None
+    shift: Optional[int] = None
+    brigade: Optional[str] = None
+    lot_number: Optional[int] = None
+    lot_date: Optional[date] = None
+    nomenclature: Optional[str] = None
+    ekn_code: Optional[str] = None
+    rc_identifier: Optional[str] = None
+    open_at: Optional[datetime] = None
+    closed_at: Optional[datetime] = None
