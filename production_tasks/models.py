@@ -1,9 +1,11 @@
-from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime, create_engine, event, UniqueConstraint
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
+from sqlalchemy import (Boolean, Column, Date, DateTime, Integer, String,
+                        UniqueConstraint, create_engine, event)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,8 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 # Database configurations
-SQLALCHEMY_DATABASE_URL = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:" \
-                          f"{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+SQLALCHEMY_DATABASE_URL = (
+    f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:"
+    f"{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+)
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -35,12 +39,10 @@ class WorkShift(Base):
     closed_at = Column(DateTime, nullable=True)
     uid = Column(String, unique=True, index=True)
 
-    __table_args__ = (
-        UniqueConstraint('uid', name='uq_uid'),
-    )
+    __table_args__ = (UniqueConstraint("uid", name="uq_uid"),)
 
 
-@event.listens_for(WorkShift, 'before_insert')
+@event.listens_for(WorkShift, "before_insert")
 def set_full_name(mapper, connection, target):
     db = SessionLocal()
     target.uid = f"{target.lot_number} {target.lot_date}"

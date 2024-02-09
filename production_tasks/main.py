@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException
-from models import SessionLocal, WorkShift, Base, engine
 import schemas
+from fastapi import FastAPI, HTTPException
+from models import Base, SessionLocal, WorkShift, engine
 
 Base.metadata.create_all(bind=engine)
 
