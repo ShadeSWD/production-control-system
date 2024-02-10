@@ -143,6 +143,10 @@
 
 ### Контейнеризация (docker)
 Для запуска приложения с помощью ``docker``:
+* Склонируйте репозиторий:
+    ```bash
+    git clone https://github.com/ShadeSWD/production-control-system.git
+    ```
 * перейдите в корневой каталог ``production-control-system``
 * Выполните сборку образов
   ```bash
@@ -154,6 +158,21 @@
   ```
 * Приложение будет доступно по адресу ``http://localhost:7777/``
 
+### Запуск контейнера из ``Github Container Rigistry``
+Перед запуском контейнера должна быть создана база данных на хосте (или в другом контейнере), её переменные среды должны быть переданы в момент запуска контейнера
+```bash
+docker run -e DB_NAME=<db name> -p <app port>:8000 -e DB_HOST=host.docker.internal -e DB_USER=<db user> -e DB_PASSWORD=<db password> -e DB_PORT=<db port> ghcr.io/shadeswd/production-control-system:latest
+```
+
+* ``<db name>`` - название базы данных
+* ``<app port>`` - порт, на котором будет работать сервис
+* ``<db user>`` - пользователь БД
+* ``<db password>`` - пароль пользователя БД
+* ``<db port>`` - порт БД
+
+Приложение будет доступно по адресу ``http://localhost:<app port>/``
+
 ### Базовый CI/CD
 ``Github actions``:
 1. Проверка кода линтерами (``flake8``) и форматерами (``black``, ``isort``).
+2. Сборка проекта в docker образ и отправка в <a href="https://github.com/shadeswd/production-control-system/pkgs/container/production-control-system">Github Container Registry</a>
