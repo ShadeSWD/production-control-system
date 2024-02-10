@@ -51,6 +51,10 @@ class WorkShiftProducts(WorkShift):
     products: list
 
 
+class WorkShiftList(RootModel):
+    root: List[WorkShift]
+
+
 class WorkShiftCreate(WorkShiftBase):
     closing_status: bool = Field(validation_alias="СтатусЗакрытия")
     shift_assignment: str = Field(validation_alias="ПредставлениеЗаданияНаСмену")

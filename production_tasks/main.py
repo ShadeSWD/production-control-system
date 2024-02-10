@@ -1,8 +1,12 @@
 import datetime
 
+from fastapi_filter import FilterDepends
+from sqlalchemy import select
+
 import schemas
 from fastapi import FastAPI, HTTPException
 from models import Base, Product, SessionLocal, WorkShift, engine
+from filters import WorkShiftFilter
 
 Base.metadata.create_all(bind=engine)
 
@@ -69,6 +73,15 @@ async def create_products(products: schemas.ProductsCreate):
 
             products_response.append(db_product)
     return products_response
+
+
+@app.get("/work_shifts", response_model=schemas.WorkShiftList)
+async def get_work_shifts(work_shift_filter: WorkShiftFilter = FilterDepends(WorkShiftFilter)):
+    db = SessionLocal()
+    query = select(WorkShift)
+    query = work_shift_filter.filter(query)
+    result = db.execute(query)
+    return result.scalars().all()
 
 
 @app.get("/work_shifts/{work_shift_id}", response_model=schemas.WorkShiftProducts)
