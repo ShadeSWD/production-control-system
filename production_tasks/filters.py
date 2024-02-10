@@ -2,8 +2,9 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi_filter.contrib.sqlalchemy import Filter
-from models import WorkShift
 from pydantic import Field, field_validator
+
+from production_tasks.models import WorkShift
 
 
 class WorkShiftFilter(Filter):
