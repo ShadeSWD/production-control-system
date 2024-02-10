@@ -19,8 +19,8 @@ async def create_work_shift(work_shift: schemas.WorkShiftCreate):
     existing_work_shift = (
         db.query(WorkShift)
         .filter(
-            WorkShift.lot_number == work_shift.dict()["lot_number"]
-            and WorkShift.lot_date == work_shift.dict()["lot_date"]
+            WorkShift.lot_number == work_shift.dict()["lot_number"],
+            WorkShift.lot_date == work_shift.dict()["lot_date"]
         )
         .first()
     )
@@ -80,6 +80,7 @@ async def get_work_shifts(work_shift_filter: WorkShiftFilter = FilterDepends(Wor
     db = SessionLocal()
     query = select(WorkShift)
     query = work_shift_filter.filter(query)
+    query = work_shift_filter.sort(query)
     result = db.execute(query)
     return result.scalars().all()
 
