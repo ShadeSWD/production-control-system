@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "production-control-system"
+version = "0.1.0"
+description = "The functionality of the system is to receive shift tasks (batch) and unique product identifiers within this batch, as well as check (upon request from an external system) whether a given product identifier belongs to this batch."
+authors = ["ShadeSWD <seawolfy60@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+setuptools = "^69.0.3"
+uvicorn = "^0.27.0.post1"
+fastapi = "^0.109.2"
+sqlalchemy = "^1.4.51"
+sqlalchemy-filterset = "^1.0.1"
+psycopg2 = "^2.9.9"
+python-dotenv = "^1.0.1"
+black = "^24.1.1"
+isort = "^5.13.2"
+flake8 = "^5.0.4"
+fastapi-filter = "^1.1.0"
+pre-commit = "^3.6.0"
+pytest = "^8.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+line_length = 90
+multi_line_output = 3
+skip_gitignore = true
+
+[tool.black]
+line-length = 90
+target-version = ['py311']
