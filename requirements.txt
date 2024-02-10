@@ -8,7 +8,7 @@ distlib==0.3.8
 fastapi==0.109.2
 fastapi-filter==1.1.0
 filelock==3.13.1
-flake8==7.0.0
+flake8==5.0.4
 greenlet==3.0.3
 h11==0.14.0
 identify==2.5.33

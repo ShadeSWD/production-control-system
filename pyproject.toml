@@ -17,7 +17,7 @@ psycopg2 = "^2.9.9"
 python-dotenv = "^1.0.1"
 black = "^24.1.1"
 isort = "^5.13.2"
-flake8 = "^7.0.0"
+flake8 = "^5.0.4"
 fastapi-filter = "^1.1.0"
 pre-commit = "^3.6.0"
 pytest = "^8.0.0"
@@ -35,4 +35,4 @@ skip_gitignore = true
 
 [tool.black]
 line-length = 90
-target-version = ['py312']
+target-version = ['py311']
