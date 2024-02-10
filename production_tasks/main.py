@@ -1,13 +1,14 @@
 import datetime
 import math
 
-import schemas
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from fastapi_filter import FilterDepends
-from filters import WorkShiftFilter
-from models import Base, Product, SessionLocal, WorkShift, engine
 from sqlalchemy import select
+
+from production_tasks import schemas
+from production_tasks.filters import WorkShiftFilter
+from production_tasks.models import Base, Product, SessionLocal, WorkShift, engine
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -15,7 +16,7 @@ app = FastAPI()
 
 @app.get("/")
 async def home_page():
-    with open("../templates/home.html", "r", encoding="utf-8") as template:
+    with open("templates/home.html", "r", encoding="utf-8") as template:
         html_content = template.read()
     return HTMLResponse(content=html_content, status_code=200)
 

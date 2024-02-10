@@ -36,10 +36,9 @@
     ```bash
     poetry shell
     ```
-* Перейдите в папку ``production_tasks`` и запустите сервер:
+* Запустите сервер:
     ```bash
-    cd production tasks
-    uvicorn main:app --reload
+    uvicorn production_tasks.main:app --reload
     ```
 
 ## Основные задачи
