@@ -48,7 +48,7 @@ async def create_products(products: schemas.ProductsCreate):
     db = SessionLocal()
     products_response = []
     for product in products.root:
-        if not db.query(Product).filter(Product.uin == product.dict()["uin"]).first():
+        if not db.query(Product).get(product.dict()["uin"]):
             db_product = Product()
             db_product.uin = product.dict()["uin"]
             db_work_shift = (
@@ -74,7 +74,7 @@ async def create_products(products: schemas.ProductsCreate):
 @app.get("/work_shifts/{work_shift_id}", response_model=schemas.WorkShiftProducts)
 async def read_work_shift(work_shift_id: int):
     db = SessionLocal()
-    db_work_shift = db.query(WorkShift).filter(WorkShift.id == work_shift_id).first()
+    db_work_shift = db.query(WorkShift).get(work_shift_id)
     if db_work_shift is None:
         raise HTTPException(status_code=404, detail="Shift not found")
 
@@ -89,7 +89,7 @@ async def read_work_shift(work_shift_id: int):
 @app.patch("/work_shifts/{work_shift_id}", response_model=schemas.WorkShift)
 async def patch_work_shift(work_shift_id: int, work_shift: schemas.WorkShiftPatch):
     db = SessionLocal()
-    db_work_shift = db.query(WorkShift).filter(WorkShift.id == work_shift_id).first()
+    db_work_shift = db.query(WorkShift).get(work_shift_id)
 
     if db_work_shift is None:
         raise HTTPException(status_code=404, detail="Shift not found")
@@ -99,6 +99,27 @@ async def patch_work_shift(work_shift_id: int, work_shift: schemas.WorkShiftPatc
     db.commit()
     db.refresh(db_work_shift)
     return db_work_shift
+
+
+@app.post("/aggregate/{work_shift_id}/{product_uin}")
+async def aggregate_product(work_shift_id: int, product_uin: str):
+    db = SessionLocal()
+
+    product = db.query(Product).get(product_uin)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    if product.is_aggregated:
+        raise HTTPException(status_code=400, detail=f"unique code already used at {product.aggregated_at}")
+
+    if product.lot != work_shift_id:
+        raise HTTPException(status_code=400, detail=f"unique code is attached to another batch")
+
+    product.is_aggregated = True
+    product.aggregated_at = datetime.datetime.now(datetime.UTC)
+    db.commit()
+
+    return {"uin": product.uin}
 
 
 def update_work_shift(work_shift, data):
