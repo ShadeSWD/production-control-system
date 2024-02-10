@@ -17,8 +17,7 @@ class ProductCreate(ProductBase):
 class Product(ProductBase):
     is_aggregated: bool
     aggregated_at: Union[datetime, None]
-    lot_number: int
-    lot_date: date
+    lot: int
 
 
 class ProductsCreate(RootModel):
@@ -46,6 +45,10 @@ class WorkShiftBase(BaseModel):
 class WorkShift(WorkShiftBase):
     id: int
     closed_at: Optional[datetime] = None
+
+
+class WorkShiftProducts(WorkShift):
+    products: list
 
 
 class WorkShiftCreate(WorkShiftBase):

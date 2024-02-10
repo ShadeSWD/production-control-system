@@ -67,19 +67,22 @@ async def create_products(products: schemas.ProductsCreate):
             db.commit()
             db.refresh(db_product)
 
-            product_response = db_product
-            product_response.lot_number = product.dict()["lot_number"]
-            product_response.lot_date = product.dict()["lot_date"]
-            products_response.append(product_response)
+            products_response.append(db_product)
     return products_response
 
 
-@app.get("/work_shifts/{work_shift_id}", response_model=schemas.WorkShift)
+@app.get("/work_shifts/{work_shift_id}", response_model=schemas.WorkShiftProducts)
 async def read_work_shift(work_shift_id: int):
     db = SessionLocal()
     db_work_shift = db.query(WorkShift).filter(WorkShift.id == work_shift_id).first()
     if db_work_shift is None:
         raise HTTPException(status_code=404, detail="Shift not found")
+
+    products = [
+        product.uin
+        for product in db.query(Product).filter(Product.lot == db_work_shift.id)
+    ]
+    db_work_shift.products = products
     return db_work_shift
 
 
