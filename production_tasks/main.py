@@ -1,12 +1,11 @@
 import datetime
 
-from fastapi_filter import FilterDepends
-from sqlalchemy import select
-
 import schemas
 from fastapi import FastAPI, HTTPException
-from models import Base, Product, SessionLocal, WorkShift, engine
+from fastapi_filter import FilterDepends
 from filters import WorkShiftFilter
+from models import Base, Product, SessionLocal, WorkShift, engine
+from sqlalchemy import select
 
 Base.metadata.create_all(bind=engine)
 
@@ -20,7 +19,7 @@ async def create_work_shift(work_shift: schemas.WorkShiftCreate):
         db.query(WorkShift)
         .filter(
             WorkShift.lot_number == work_shift.dict()["lot_number"],
-            WorkShift.lot_date == work_shift.dict()["lot_date"]
+            WorkShift.lot_date == work_shift.dict()["lot_date"],
         )
         .first()
     )
@@ -76,7 +75,9 @@ async def create_products(products: schemas.ProductsCreate):
 
 
 @app.get("/work_shifts", response_model=schemas.WorkShiftList)
-async def get_work_shifts(work_shift_filter: WorkShiftFilter = FilterDepends(WorkShiftFilter)):
+async def get_work_shifts(
+    work_shift_filter: WorkShiftFilter = FilterDepends(WorkShiftFilter),
+):
     db = SessionLocal()
     query = select(WorkShift)
     query = work_shift_filter.filter(query)
@@ -124,10 +125,15 @@ async def aggregate_product(work_shift_id: int, product_uin: str):
         raise HTTPException(status_code=404, detail="Product not found")
 
     if product.is_aggregated:
-        raise HTTPException(status_code=400, detail=f"unique code already used at {product.aggregated_at}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"unique code already used at {product.aggregated_at}",
+        )
 
     if product.lot != work_shift_id:
-        raise HTTPException(status_code=400, detail=f"unique code is attached to another batch")
+        raise HTTPException(
+            status_code=400, detail=f"unique code is attached to another batch"
+        )
 
     product.is_aggregated = True
     product.aggregated_at = datetime.datetime.now(datetime.UTC)

@@ -1,14 +1,13 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 from fastapi_filter.contrib.sqlalchemy import Filter
-from pydantic import Field, field_validator
-
 from models import WorkShift
+from pydantic import Field, field_validator
 
 
 class WorkShiftFilter(Filter):
-    order_by: Optional[list[str]]
+    order_by: Optional[list[str]] = None
     closing_status: Optional[bool] = None
     lot_number: Optional[int] = None
     shift_assignment__like: Optional[str] = Field(default=None, alias="assignment_like")
@@ -30,11 +29,19 @@ class WorkShiftFilter(Filter):
         if value is None:
             return None
 
-        allowed_field_names = ["lot_date", "lot_number", "shift_start", "shift_end", "closed_at"]
+        allowed_field_names = [
+            "lot_date",
+            "lot_number",
+            "shift_start",
+            "shift_end",
+            "closed_at",
+        ]
 
         for field_name in value:
             field_name = field_name.replace("+", "").replace("-", "")  #
             if field_name not in allowed_field_names:
-                raise ValueError(f"You may only sort by: {', '.join(allowed_field_names)}")
+                raise ValueError(
+                    f"You may only sort by: {', '.join(allowed_field_names)}"
+                )
 
         return value
