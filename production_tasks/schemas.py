@@ -1,7 +1,13 @@
 from datetime import date, datetime
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, RootModel
+
+
+class Pagination(BaseModel):
+    page: int
+    size: int
+    total: int
 
 
 class ProductBase(BaseModel):
@@ -51,8 +57,9 @@ class WorkShiftProducts(WorkShift):
     products: list
 
 
-class WorkShiftList(RootModel):
-    root: List[WorkShift]
+class WorkShiftList(BaseModel):
+    work_shifts: List[WorkShift]
+    pagination: Pagination
 
 
 class WorkShiftCreate(WorkShiftBase):

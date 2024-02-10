@@ -1,7 +1,8 @@
 import datetime
+import math
 
 import schemas
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi_filter import FilterDepends
 from filters import WorkShiftFilter
 from models import Base, Product, SessionLocal, WorkShift, engine
@@ -77,13 +78,27 @@ async def create_products(products: schemas.ProductsCreate):
 @app.get("/work_shifts", response_model=schemas.WorkShiftList)
 async def get_work_shifts(
     work_shift_filter: WorkShiftFilter = FilterDepends(WorkShiftFilter),
+    page: int = Query(ge=0, default=0),
+    size: int = Query(ge=1, le=100, default=100),
 ):
     db = SessionLocal()
     query = select(WorkShift)
     query = work_shift_filter.filter(query)
     query = work_shift_filter.sort(query)
     result = db.execute(query)
-    return result.scalars().all()
+
+    offset = page * size
+    limit = (page + 1) * size
+    response = result.scalars().all()
+    response = {
+        "work_shifts": response[offset:limit],
+        "pagination": {
+            "page": page,
+            "size": size,
+            "total": math.ceil(len(response) / size) - 1,
+        },
+    }
+    return response
 
 
 @app.get("/work_shifts/{work_shift_id}", response_model=schemas.WorkShiftProducts)
