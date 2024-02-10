@@ -14,7 +14,7 @@
 **Задачи "CI/CD":**
 
 - [ ] Тесты
-- [ ] docker
+- [x] docker
 - [x] Базовый CI/CD
 
 **Запуск проекта:**
@@ -143,6 +143,17 @@
 ### Тесты (unit, functional, integration)
 
 ### Контейнеризация (docker)
+Для запуска приложения с помощью ``docker``:
+* перейдите в корневой каталог ``production-control-system``
+* Выполните сборку образов
+  ```bash
+  docker-compose build
+  ```
+* Запустите контейнер
+  ```bash
+  docker-compose up
+  ```
+* Приложение будет доступно по адресу ``http://localhost:7777/``
 
 ### Базовый CI/CD
 ``Github actions``:
