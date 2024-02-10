@@ -14,3 +14,9 @@ repos:
     hooks:
     - id: isort
       args: [--filter-files, src/]
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+    - id: black
+      exclude: migrations
+      args: [--check,--config=pyproject.toml]

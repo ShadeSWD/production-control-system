@@ -32,3 +32,7 @@ profile = "black"
 line_length = 90
 multi_line_output = 3
 skip_gitignore = true
+
+[tool.black]
+line-length = 90
+target-version = ['py312']
