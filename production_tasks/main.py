@@ -7,14 +7,13 @@ from fastapi_filter import FilterDepends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from production_tasks import models, schemas
+from production_tasks import schemas
 from production_tasks.filters import WorkShiftFilter
 
-from .datatbase import SessionLocal, engine
+from .datatbase import SessionLocal
 from .models import Product, WorkShift
 
 app = FastAPI()
-models.Base.metadata.create_all(bind=engine)
 
 
 def get_db():

@@ -36,6 +36,10 @@
     ```bash
     poetry shell
     ```
+* Накатите миграции:
+  ```bash
+  alembic upgrade head
+  ```
 * Запустите сервер:
     ```bash
     uvicorn production_tasks.main:app --reload
