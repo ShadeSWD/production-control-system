@@ -13,7 +13,7 @@
 
 **Задачи "CI/CD":**
 
-- [ ] Тесты
+- [x] Тесты
 - [x] docker
 - [x] Базовый CI/CD
 
@@ -139,7 +139,24 @@
 
 ## Задачи "CI/CD"
 
-### Тесты (unit, functional, integration)
+### Тесты
+* Для запуска тестов необходимо находясь в корне проекта активировать виртуальное окружение
+    ```bash
+    poetry shell
+    ```
+* запустите тесты командой ``pytest``
+  ```bash
+  pytest
+  ```
+* для просмотра отчета о покрытии тестами выполните
+  ```bash
+  pytest --cov
+  ```
+* сгенерировать интерактивный отчет о покрытии тестами можно следующим образом
+  ```bash
+  pytest --cov --cov-report=html
+  ```
+  для его просмотра необходимо зайти в папку ``htmlcov`` в корне проекта и открыть в браузере ``index.html``
 
 ### Контейнеризация (docker)
 Для запуска приложения с помощью ``docker``:
@@ -175,4 +192,5 @@ docker run -e DB_NAME=<db name> -p <app port>:8000 -e DB_HOST=host.docker.intern
 ### Базовый CI/CD
 ``Github actions``:
 1. Проверка кода линтерами (``flake8``) и форматерами (``black``, ``isort``).
-2. Сборка проекта в docker образ и отправка в <a href="https://github.com/shadeswd/production-control-system/pkgs/container/production-control-system">Github Container Registry</a>
+2. Запуск тестов
+3. Сборка проекта в docker образ и отправка в <a href="https://github.com/shadeswd/production-control-system/pkgs/container/production-control-system">Github Container Registry</a>
