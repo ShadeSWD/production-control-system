@@ -10,15 +10,16 @@ from sqlalchemy.orm import Session
 from production_tasks import models, schemas
 from production_tasks.filters import WorkShiftFilter
 
+from .datatbase import SessionLocal, engine
 from .models import Product, WorkShift
 
-models.Base.metadata.create_all(bind=models.engine)
 app = FastAPI()
+models.Base.metadata.create_all(bind=engine)
 
 
 def get_db():
     """Return a new db session. Used as a FastAPI dependency."""
-    db = models.SessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
