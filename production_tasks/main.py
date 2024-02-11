@@ -1,17 +1,28 @@
 import datetime
 import math
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from fastapi_filter import FilterDepends
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from production_tasks import schemas
+from production_tasks import models, schemas
 from production_tasks.filters import WorkShiftFilter
-from production_tasks.models import Base, Product, SessionLocal, WorkShift, engine
 
-Base.metadata.create_all(bind=engine)
+from .models import Product, WorkShift
+
+models.Base.metadata.create_all(bind=models.engine)
 app = FastAPI()
+
+
+def get_db():
+    """Return a new db session. Used as a FastAPI dependency."""
+    db = models.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @app.get("/")
@@ -22,8 +33,9 @@ async def home_page():
 
 
 @app.post("/work_shifts/", response_model=schemas.WorkShift)
-async def create_work_shift(work_shift: schemas.WorkShiftCreate):
-    db = SessionLocal()
+async def create_work_shift(
+    work_shift: schemas.WorkShiftCreate, db: Session = Depends(get_db)
+):
     existing_work_shift = (
         db.query(WorkShift)
         .filter(
@@ -56,8 +68,9 @@ async def create_work_shift(work_shift: schemas.WorkShiftCreate):
 
 
 @app.post("/products/", response_model=schemas.ProductsList)
-async def create_products(products: schemas.ProductsCreate):
-    db = SessionLocal()
+async def create_products(
+    products: schemas.ProductsCreate, db: Session = Depends(get_db)
+):
     products_response = []
     for product in products.root:
         if not db.query(Product).get(product.model_dump()["uin"]):
@@ -86,10 +99,10 @@ async def create_products(products: schemas.ProductsCreate):
 @app.get("/work_shifts", response_model=schemas.WorkShiftList)
 async def get_work_shifts(
     work_shift_filter: WorkShiftFilter = FilterDepends(WorkShiftFilter),
+    db: Session = Depends(get_db),
     page: int = Query(ge=0, default=0),
     size: int = Query(ge=1, le=100, default=100),
 ):
-    db = SessionLocal()
     query = select(WorkShift)
     query = work_shift_filter.filter(query)
     query = work_shift_filter.sort(query)
@@ -110,8 +123,7 @@ async def get_work_shifts(
 
 
 @app.get("/work_shifts/{work_shift_id}", response_model=schemas.WorkShiftProducts)
-async def read_work_shift(work_shift_id: int):
-    db = SessionLocal()
+async def read_work_shift(work_shift_id: int, db: Session = Depends(get_db)):
     db_work_shift = db.query(WorkShift).get(work_shift_id)
     if db_work_shift is None:
         raise HTTPException(status_code=404, detail="Shift not found")
@@ -125,8 +137,9 @@ async def read_work_shift(work_shift_id: int):
 
 
 @app.patch("/work_shifts/{work_shift_id}", response_model=schemas.WorkShift)
-async def patch_work_shift(work_shift_id: int, work_shift: schemas.WorkShiftPatch):
-    db = SessionLocal()
+async def patch_work_shift(
+    work_shift_id: int, work_shift: schemas.WorkShiftPatch, db: Session = Depends(get_db)
+):
     db_work_shift = db.query(WorkShift).get(work_shift_id)
 
     if db_work_shift is None:
@@ -140,9 +153,9 @@ async def patch_work_shift(work_shift_id: int, work_shift: schemas.WorkShiftPatc
 
 
 @app.post("/aggregate/{work_shift_id}/{product_uin}")
-async def aggregate_product(work_shift_id: int, product_uin: str):
-    db = SessionLocal()
-
+async def aggregate_product(
+    work_shift_id: int, product_uin: str, db: Session = Depends(get_db)
+):
     product = db.query(Product).get(product_uin)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
