@@ -26,7 +26,7 @@ class Product(ProductBase):
     lot: int
 
 
-class ProductsCreate(BaseModel):
+class ProductsCreate(RootModel):
     root: List[ProductCreate]
 
 
