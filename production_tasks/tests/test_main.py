@@ -55,10 +55,7 @@ def test_read_main():
 
 
 def test_create_work_shift():
-    response = client.post(
-        "/work_shifts/",
-        json=DEFAULT_SHIFT_TASK,
-    )
+    response = client.post("/work_shifts/", json=DEFAULT_SHIFT_TASK)
     assert response.status_code == 200
     assert response.json() == {
         "brigade": "string",
@@ -78,10 +75,7 @@ def test_create_work_shift():
     }
     closed_shift = DEFAULT_SHIFT_TASK.copy()
     closed_shift["СтатусЗакрытия"] = "true"
-    response_closed = client.post(
-        "/work_shifts/",
-        json=closed_shift,
-    )
+    response_closed = client.post("/work_shifts/", json=closed_shift)
     assert response_closed.json()["closed_at"]
     assert response_closed.json()["closing_status"]
 
@@ -89,19 +83,13 @@ def test_create_work_shift():
 def test_create_existing_work_shift():
     response = None
     for i in range(3):
-        response = client.post(
-            "/work_shifts/",
-            json=DEFAULT_SHIFT_TASK,
-        )
+        response = client.post("/work_shifts/", json=DEFAULT_SHIFT_TASK)
     assert response.status_code == 200
     assert response.json()["id"] == 1
 
 
 def test_create_products():
-    client.post(
-        "/work_shifts/",
-        json=DEFAULT_SHIFT_TASK,
-    )
+    client.post("/work_shifts/", json=DEFAULT_SHIFT_TASK)
     response = client.post("/products/", json=PRODUCTS)
     assert response.status_code == 200
     assert response.json() == [
@@ -118,3 +106,58 @@ def test_create_products():
             "uin": "strings",
         },
     ]
+
+
+def test_aggregate_product():
+    client.post("/work_shifts/", json=DEFAULT_SHIFT_TASK)
+    client.post("/products/", json=PRODUCTS)
+
+    response_not_found = client.post("/aggregate/11/112")
+    assert response_not_found.status_code == 404
+
+    response_not_match = client.post("/aggregate/11/string")
+    assert response_not_match.status_code == 400
+
+    response_success = client.post("/aggregate/1/string")
+    assert response_success.status_code == 200
+    assert response_success.json() == {"uin": "string"}
+
+    response_already_used = client.post("/aggregate/1/string")
+    assert response_already_used.status_code == 400
+
+
+def test_get_shift_by_id():
+    client.post("/work_shifts/", json=DEFAULT_SHIFT_TASK)
+    client.post("/products/", json=PRODUCTS)
+
+    response = client.get("/work_shifts/1")
+    assert response.status_code == 200
+    assert response.json()["products"] == ["string", "strings"]
+
+    response = client.get("/work_shifts/15")
+    assert response.status_code == 404
+
+
+def test_shift_patch():
+    client.post("/work_shifts/", json=DEFAULT_SHIFT_TASK)
+
+    response = client.patch("/work_shifts/1", json={"closing_status": True})
+    assert response.status_code == 200
+    assert response.json()["closing_status"]
+
+    response = client.patch("/work_shifts/15", json={"closing_status": True})
+    assert response.status_code == 404
+
+
+def test_shift_filter():
+    client.post("/work_shifts/", json=DEFAULT_SHIFT_TASK)
+
+    response = client.get("/work_shifts?page=0&size=100&closing_status=true")
+    assert response.json() == {
+        "pagination": {
+            "page": 0,
+            "size": 100,
+            "total": -1,
+        },
+        "work_shifts": [],
+    }
