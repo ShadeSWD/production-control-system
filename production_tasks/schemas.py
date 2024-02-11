@@ -46,6 +46,7 @@ class WorkShiftBase(BaseModel):
     ekn_code: str
     rc_identifier: str
     shift_start: datetime
+    shift_end: datetime
 
 
 class WorkShift(WorkShiftBase):
@@ -83,6 +84,10 @@ class WorkShiftPatch(WorkShiftBase):
     line: Optional[str] = None
     shift: Optional[int] = None
     brigade: Optional[str] = None
+    lot_number: Optional[int] = None
+    lot_date: Optional[date] = None
     nomenclature: Optional[str] = None
     ekn_code: Optional[str] = None
     rc_identifier: Optional[str] = None
+    shift_start: Optional[datetime] = None
+    shift_end: Optional[datetime] = None

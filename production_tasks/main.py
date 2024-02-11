@@ -1,17 +1,28 @@
 import datetime
 import math
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from fastapi_filter import FilterDepends
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from production_tasks import schemas
 from production_tasks.filters import WorkShiftFilter
-from production_tasks.models import Base, Product, SessionLocal, WorkShift, engine
 
-Base.metadata.create_all(bind=engine)
+from .datatbase import SessionLocal
+from .models import Product, WorkShift
+
 app = FastAPI()
+
+
+def get_db():
+    """Return a new db session. Used as a FastAPI dependency."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @app.get("/")
@@ -22,13 +33,14 @@ async def home_page():
 
 
 @app.post("/work_shifts/", response_model=schemas.WorkShift)
-async def create_work_shift(work_shift: schemas.WorkShiftCreate):
-    db = SessionLocal()
+async def create_work_shift(
+    work_shift: schemas.WorkShiftCreate, db: Session = Depends(get_db)
+):
     existing_work_shift = (
         db.query(WorkShift)
         .filter(
-            WorkShift.lot_number == work_shift.dict()["lot_number"],
-            WorkShift.lot_date == work_shift.dict()["lot_date"],
+            WorkShift.lot_number == work_shift.model_dump()["lot_number"],
+            WorkShift.lot_date == work_shift.model_dump()["lot_date"],
         )
         .first()
     )
@@ -39,7 +51,7 @@ async def create_work_shift(work_shift: schemas.WorkShiftCreate):
         db.refresh(existing_work_shift)
         return existing_work_shift
 
-    db_work_shift = WorkShift(**work_shift.dict())
+    db_work_shift = WorkShift(**work_shift.model_dump())
     if db_work_shift.closing_status:
         if (
             db_work_shift.shift_end
@@ -56,18 +68,19 @@ async def create_work_shift(work_shift: schemas.WorkShiftCreate):
 
 
 @app.post("/products/", response_model=schemas.ProductsList)
-async def create_products(products: schemas.ProductsCreate):
-    db = SessionLocal()
+async def create_products(
+    products: schemas.ProductsCreate, db: Session = Depends(get_db)
+):
     products_response = []
     for product in products.root:
-        if not db.query(Product).get(product.dict()["uin"]):
+        if not db.query(Product).get(product.model_dump()["uin"]):
             db_product = Product()
-            db_product.uin = product.dict()["uin"]
+            db_product.uin = product.model_dump()["uin"]
             db_work_shift = (
                 db.query(WorkShift)
                 .filter(
-                    WorkShift.lot_number == product.dict()["lot_number"]
-                    and WorkShift.lot_date == product.dict()["lot_date"]
+                    WorkShift.lot_number == product.model_dump()["lot_number"]
+                    and WorkShift.lot_date == product.model_dump()["lot_date"]
                 )
                 .first()
             )
@@ -86,10 +99,10 @@ async def create_products(products: schemas.ProductsCreate):
 @app.get("/work_shifts", response_model=schemas.WorkShiftList)
 async def get_work_shifts(
     work_shift_filter: WorkShiftFilter = FilterDepends(WorkShiftFilter),
+    db: Session = Depends(get_db),
     page: int = Query(ge=0, default=0),
     size: int = Query(ge=1, le=100, default=100),
 ):
-    db = SessionLocal()
     query = select(WorkShift)
     query = work_shift_filter.filter(query)
     query = work_shift_filter.sort(query)
@@ -110,8 +123,7 @@ async def get_work_shifts(
 
 
 @app.get("/work_shifts/{work_shift_id}", response_model=schemas.WorkShiftProducts)
-async def read_work_shift(work_shift_id: int):
-    db = SessionLocal()
+async def read_work_shift(work_shift_id: int, db: Session = Depends(get_db)):
     db_work_shift = db.query(WorkShift).get(work_shift_id)
     if db_work_shift is None:
         raise HTTPException(status_code=404, detail="Shift not found")
@@ -125,8 +137,9 @@ async def read_work_shift(work_shift_id: int):
 
 
 @app.patch("/work_shifts/{work_shift_id}", response_model=schemas.WorkShift)
-async def patch_work_shift(work_shift_id: int, work_shift: schemas.WorkShiftPatch):
-    db = SessionLocal()
+async def patch_work_shift(
+    work_shift_id: int, work_shift: schemas.WorkShiftPatch, db: Session = Depends(get_db)
+):
     db_work_shift = db.query(WorkShift).get(work_shift_id)
 
     if db_work_shift is None:
@@ -140,9 +153,9 @@ async def patch_work_shift(work_shift_id: int, work_shift: schemas.WorkShiftPatc
 
 
 @app.post("/aggregate/{work_shift_id}/{product_uin}")
-async def aggregate_product(work_shift_id: int, product_uin: str):
-    db = SessionLocal()
-
+async def aggregate_product(
+    work_shift_id: int, product_uin: str, db: Session = Depends(get_db)
+):
     product = db.query(Product).get(product_uin)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -168,9 +181,9 @@ async def aggregate_product(work_shift_id: int, product_uin: str):
 def update_work_shift(work_shift, data):
     now_closed = work_shift.closing_status
 
-    for key, value in data.dict().items():
+    for key, value in data.model_dump().items():
         setattr(work_shift, key, value) if value else None
-    work_shift.closing_status = data.dict()["closing_status"]
+    work_shift.closing_status = data.model_dump()["closing_status"]
 
     if not now_closed and work_shift.closing_status and not work_shift.closed_at:
         work_shift.closed_at = datetime.datetime.now(datetime.UTC)

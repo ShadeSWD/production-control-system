@@ -21,6 +21,10 @@ flake8 = "^5.0.4"
 fastapi-filter = "^1.1.0"
 pre-commit = "^3.6.0"
 pytest = "^8.0.0"
+httpx = "^0.26.0"
+pytest-cov = "^4.1.0"
+sqlalchemy-utils = "^0.41.1"
+alembic = "^1.13.1"
 
 
 [build-system]
