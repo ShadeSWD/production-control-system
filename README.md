@@ -184,7 +184,7 @@
   ```
 * Приложение будет доступно по адресу ``http://localhost:7777/``
 
-### Запуск контейнера из ``Github Container Rigistry``
+### Запуск контейнера из ``Github Container Registry``
 Перед запуском контейнера должна быть создана база данных на хосте (или в другом контейнере), её переменные среды должны быть переданы в момент запуска контейнера
 ```bash
 docker run -e DB_NAME=<db name> -p <app port>:8000 -e DB_HOST=host.docker.internal -e DB_USER=<db user> -e DB_PASSWORD=<db password> -e DB_PORT=<db port> ghcr.io/shadeswd/production-control-system:latest
