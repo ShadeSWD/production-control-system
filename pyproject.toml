@@ -21,6 +21,7 @@ flake8 = "^5.0.4"
 fastapi-filter = "^1.1.0"
 pre-commit = "^3.6.0"
 pytest = "^8.0.0"
+httpx = "^0.26.0"
 
 
 [build-system]
